@@ -121,10 +121,10 @@ export const updateProject = mutation({
     backgroundRemoved: v.optional(v.boolean()),
   },
 
-  handler: async () => {
-    const user = ctx.db.get(internal.users.getCurrentUser);
+  handler: async (ctx, args) => {
+    const user = await ctx.runQuery(internal.users.getCurrentUser);
 
-    const project = await ctx.db.get(args);
+    const project = await ctx.db.get(args.projectId);
 
     if (!project) {
       throw new Error("Project not found");

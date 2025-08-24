@@ -150,6 +150,46 @@ const canvasEditor = ({ project }) => {
         }
     }, [project]);
 
+    const saveCanvasState = async () => {
+        if (!canvasEditor || !project) return;
+
+        try {
+            const canvasJSON = canvasEditor.toJSON();
+
+            await updateProject({
+                projectId: project._id,
+                canvasState: canvasJSON,
+            })
+        } catch (error) {
+            console.log("Error saving canvas state:", error);
+        }
+    }
+
+    useEffect(() => {
+        if (!canvasEditor) return;
+
+        let saveTimeout;
+
+        const handleCanvasChange = () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveCanvasState();
+            }, 2000)
+        }
+
+        canvasEditor.on("object:modified", handleCanvasChange);
+        canvasEditor.on("object:added", handleCanvasChange);
+        canvasEditor.on("object:removed", handleCanvasChange);
+
+
+        return () => {
+            clearTimeout(saveTimeout);
+            canvasEditor.off("object:modified", handleCanvasChange);
+            canvasEditor.off("object:added", handleCanvasChange);
+            canvasEditor.off("object:removed", handleCanvasChange);
+        }
+    }, [canvasEditor])
+
     useEffect(() => {
         const handleResize = () => {
             if (!canvasEditor || !project) {
